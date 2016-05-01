@@ -36,38 +36,44 @@ public class InGameSummonerQuerier {
 
 		HttpClient client = HttpClientBuilder.create().build();
 
-		String summonerId = getSummnorId(summonerName, client);
-		
+		String summonerId = getSummonerId(summonerName, client);
+
 		InGameInfo gameInfo = getInGameInfo(client, summonerId);
 
-		Arrays.asList(gameInfo.getParticipants()).forEach((InGameInfo.Participant participant) -> {
-			listener.player(participant.getSummonerName());
-		});
+		getInGameParticipants(gameInfo);
 
 		return gameInfo.getObservers().getEncryptionKey();
 	}
 
-	private String getSummnorId(String summonerName, HttpClient client)
+	protected String getSummonerId(String summonerName, HttpClient client)
 			throws UnsupportedEncodingException, IOException, ClientProtocolException {
-		
+
 		HttpUriRequest summonerRequest = buildApiHttpRequest(summonerName);
 		HttpResponse summonerResponse = client.execute(summonerRequest);
-		Gson summonerInfoGson = new Gson();
-		Type mapType = new TypeToken<HashMap<String, SummonerInfo>>() {
-		}.getType();
-		HashMap<String, SummonerInfo> entries = summonerInfoGson
-				.fromJson(new JsonReader(new InputStreamReader(summonerResponse.getEntity().getContent())), mapType);
+
+		HashMap<String, SummonerInfo> entries = new Gson().fromJson(
+				new JsonReader(new InputStreamReader(summonerResponse.getEntity().getContent())),
+				new TypeToken<HashMap<String, SummonerInfo>>() {
+				}.getType());
+
 		String summonerId = entries.get(summonerName).getId();
 		return summonerId;
 	}
-	
-	private InGameInfo getInGameInfo(HttpClient client, String summonerId) throws IOException, ClientProtocolException {
+
+	protected InGameInfo getInGameInfo(HttpClient client, String summonerId)
+			throws IOException, ClientProtocolException {
 		HttpUriRequest inGameRequest = buildObserverHttpRequest(summonerId);
 		HttpResponse inGameResponse = client.execute(inGameRequest);
-		Gson inGameGson = new Gson();
-		InGameInfo gameInfo = inGameGson.fromJson(
+
+		InGameInfo gameInfo = new Gson().fromJson(
 				new JsonReader(new InputStreamReader(inGameResponse.getEntity().getContent())), InGameInfo.class);
 		return gameInfo;
+	}
+
+	protected void getInGameParticipants(InGameInfo gameInfo) {
+		Arrays.asList(gameInfo.getParticipants()).forEach((InGameInfo.Participant participant) -> {
+			listener.player(participant.getSummonerName());
+		});
 	}
 
 	private HttpUriRequest buildApiHttpRequest(String summonerName) throws UnsupportedEncodingException {
