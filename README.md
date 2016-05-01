@@ -14,4 +14,4 @@ Run Configuration에서 첫 번째 argument는 API키를, 두 번째 argument는
 게임중인 친구의 소환사명을 입력하면 결과를 확인할 수 있습니다.
 
 ## Output Example
-![IMG0](./img/output.png)
+![IMG0](./img/output.PNG)
